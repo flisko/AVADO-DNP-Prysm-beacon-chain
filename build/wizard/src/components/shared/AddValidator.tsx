@@ -47,7 +47,7 @@ const AddValidator = ({ updateValidators, api }: Props) => {
             }
 
             const message = await createMessage();
-            console.log(message)
+            console.log("Importing", keyStoreFiles.length, "keystore(s)")
 
             api.post("/keymanager/eth/v1/keystores", message, (res) => {
                 //https://ethereum.github.io/keymanager-APIs/#/Local%20Key%20Manager/ImportKeystores
