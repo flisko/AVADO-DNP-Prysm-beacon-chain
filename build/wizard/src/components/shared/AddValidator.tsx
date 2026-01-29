@@ -28,7 +28,7 @@ const AddValidator = ({ updateValidators, api }: Props) => {
     const [collapsed, setCollapsed] = React.useState(true);
 
     const addValidator = async () => {
-        if (!keyStoreFiles || keyStoreFiles.length === 0) {
+        if (keyStoreFiles.length === 0) {
             console.log("Keystore files not set")
             setResult({ status: "error", message: "Please select at least one keystore file" });
             return
@@ -59,7 +59,11 @@ const AddValidator = ({ updateValidators, api }: Props) => {
                         case "imported": imported++; break;
                         case "duplicate": duplicate++; break;
                         case "error":
+                            errors++;
+                            if (r.message) errorMessages.push(r.message);
+                            break;
                         default:
+                            console.log("Unexpected validator import status:", r.status);
                             errors++;
                             if (r.message) errorMessages.push(r.message);
                             break;
@@ -67,7 +71,9 @@ const AddValidator = ({ updateValidators, api }: Props) => {
                 });
 
                 if (errors > 0) {
-                    setResult({ status: "error", message: `Imported ${imported}, ${duplicate} duplicate, ${errors} error(s). ${errorMessages[0] ? errorMessages[0] : ""}` });
+                    const errorMsg = errorMessages.length > 0 ? ` ${errorMessages[0]}` : "";
+                    const moreErrors = errorMessages.length > 1 ? ` (+${errorMessages.length - 1} more)` : "";
+                    setResult({ status: "error", message: `Imported ${imported}, ${duplicate} duplicate, ${errors} error(s).${errorMsg}${moreErrors}` });
                 } else if (duplicate > 0) {
                     setResult({ status: "duplicate", message: `Imported ${imported}, ${duplicate} duplicate.` });
                 } else {
@@ -77,12 +83,14 @@ const AddValidator = ({ updateValidators, api }: Props) => {
                 setIsUploading(false);
             }, (e) => {
                 console.log(e)
-                setResult({ status: "error", message: e.message + ". Please check the input files" });
+                const errorMsg = e?.message || "Unknown error occurred";
+                setResult({ status: "error", message: `${errorMsg}. Please check the input files` });
                 setIsUploading(false);
             });
         } catch (e: any) {
             console.log(e)
-            setResult({ status: "error", message: e.message + ". Please check the input files" });
+            const errorMsg = e?.message || "Unknown error occurred";
+            setResult({ status: "error", message: `${errorMsg}. Please check the input files` });
             setIsUploading(false);
         }
     }
