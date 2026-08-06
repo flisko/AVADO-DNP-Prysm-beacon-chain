@@ -215,14 +215,25 @@ const Validators = ({ settings, api, readonly = false }: Props) => {
     }
 
     const withdrawalTag = (validator: ValidatorData) => {
-        const ready = validator.validator.withdrawal_credentials.startsWith("0x01")
+        const credentials = validator.validator.withdrawal_credentials;
+        const isCompounding = credentials.startsWith("0x02"); // Pectra: compounding validator
+        const isEnabled = credentials.startsWith("0x01"); // Standard execution layer withdrawals
+        const isBLS = credentials.startsWith("0x00"); // Legacy BLS credentials
+
         const message = () => {
-            if (ready)
-                return "enabled"
-            if (!ready)
-                return "todo"
+            if (isCompounding) return "enabled+compounding";
+            if (isEnabled) return "enabled";
+            if (isBLS) return "todo";
+            return "unknown";
         }
-        return <span className={"tag " + (ready ? "is-success" : "is-warning")}>{message()}</span>
+
+        const tagClass = () => {
+            if (isCompounding || isEnabled) return "is-success";
+            if (isBLS) return "is-warning";
+            return "is-danger";
+        }
+
+        return <span className={"tag " + tagClass()}>{message()}</span>
     }
 
     const canExit = (validator: ValidatorData) => validator.status === "active_ongoing"
